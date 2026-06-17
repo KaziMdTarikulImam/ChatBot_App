@@ -1,4 +1,4 @@
-# Chatbot Mobile App
+</h3 align="center"> Chatbot Mobile App </h3>
 
 AI-powered chatbot mobile app that can assist customers, take orders, follow instructions, and provide fast conversational support.
 
