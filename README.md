@@ -1,8 +1,12 @@
-</h3 align="center"> Chatbot Mobile App </h3>
+<h1 align="center">Chatbot Mobile App</h1>
 
-AI-powered chatbot mobile app that can assist customers, take orders, follow instructions, and provide fast conversational support.
+<p align="center">
+  AI-powered chatbot mobile app that can assist customers, take orders, follow instructions, and provide fast conversational support.
+</p>
 
-![Chatbot Mobile App Preview](image.png)
+<p align="center">
+  <img src="image.png" alt="Chatbot Mobile App Preview" width="700">
+</p>
 
 ## Overview
 
@@ -29,5 +33,3 @@ Chatbot Mobile App is a modern Flutter-based mobile application designed to prov
 * GetX ready
 * Android
 * iOS
-
- 
