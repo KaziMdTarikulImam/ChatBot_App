@@ -1,17 +1,33 @@
-# my_app
+# Chatbot Mobile App
 
-A new Flutter project.
+AI-powered chatbot mobile app that can assist customers, take orders, follow instructions, and provide fast conversational support.
 
-## Getting Started
+![Chatbot Mobile App Preview](image.png)
 
-This project is a starting point for a Flutter application.
+## Overview
 
-A few resources to get you started if this is your first Flutter project:
+Chatbot Mobile App is a modern Flutter-based mobile application designed to provide a smooth AI chat experience for users. It includes a clean splash screen, registration screen, login screen, home dashboard, and chat interface.
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Features
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+* AI chatbot-style mobile interface
+* Beautiful splash screen with animation
+* User registration page
+* User login page
+* Modern chatbot home screen
+* Separate chat page
+* Quick question suggestions
+* Clean and responsive Flutter UI
+* Android and iOS support
+* Wear OS support through Android platform
+
+## Tech Stack
+
+* Flutter
+* Dart
+* Material Design
+* GetX ready
+* Android
+* iOS
+
+ 
