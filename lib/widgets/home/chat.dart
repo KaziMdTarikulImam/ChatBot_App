@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:my_app/networks/api_service.dart';
 
 class chat extends StatefulWidget {
   const chat({super.key});
@@ -11,13 +12,13 @@ class _chatState extends State<chat> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  final List<Map<String, dynamic>> _messages = [
-    {
-      "message": "Hello 👋 I am your AI assistant. How can I help you today?",
-      "isUser": false,
-      "time": "Now",
-    },
-  ];
+  bool _isBotTyping = false;
+  bool _defaultMessageLoaded = false;
+
+  final String _sender = "mohsin";
+  final String _defaultMessage = "Hi";
+
+  final List<Map<String, dynamic>> _messages = [];
 
   final List<String> _quickQuestions = [
     "What can you do?",
@@ -27,13 +28,54 @@ class _chatState extends State<chat> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _sendDefaultMessage();
+    });
+  }
+
+  @override
   void dispose() {
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
-  void _sendMessage({String? quickText}) {
+  Future<void> _sendDefaultMessage() async {
+    if (_defaultMessageLoaded) {
+      return;
+    }
+
+    _defaultMessageLoaded = true;
+
+    setState(() {
+      _isBotTyping = true;
+    });
+
+    final botReply = await ApiService.postChatMessage(
+      endpoint: "chat",
+      sender: _sender,
+      message: _defaultMessage,
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      _isBotTyping = false;
+
+      _messages.add({
+        "message": botReply,
+        "isUser": false,
+        "time": "Now",
+      });
+    });
+
+    _scrollToBottom();
+  }
+
+  Future<void> _sendMessage({String? quickText}) async {
     final text = quickText ?? _messageController.text.trim();
 
     if (text.isEmpty) {
@@ -46,46 +88,32 @@ class _chatState extends State<chat> {
         "isUser": true,
         "time": "Now",
       });
+
+      _isBotTyping = true;
     });
 
     _messageController.clear();
     _scrollToBottom();
 
-    Future.delayed(const Duration(milliseconds: 600), () {
-      if (!mounted) return;
+    final botReply = await ApiService.postChatMessage(
+      endpoint: "chat",
+      sender: _sender,
+      message: text,
+    );
 
-      setState(() {
-        _messages.add({
-          "message": _getBotReply(text),
-          "isUser": false,
-          "time": "Now",
-        });
+    if (!mounted) return;
+
+    setState(() {
+      _isBotTyping = false;
+
+      _messages.add({
+        "message": botReply,
+        "isUser": false,
+        "time": "Now",
       });
-
-      _scrollToBottom();
     });
-  }
 
-  String _getBotReply(String userMessage) {
-    final message = userMessage.toLowerCase();
-
-    if (message.contains("flutter")) {
-      return "Sure! I can help you with Flutter UI, routing, GetX, API connection, and error fixing.";
-    }
-
-    if (message.contains("write") || message.contains("email")) {
-      return "Of course. Send me your text and I will rewrite it in a better and professional way.";
-    }
-
-    if (message.contains("code") || message.contains("coding")) {
-      return "I can help you write code, fix bugs, explain errors, and build complete screens.";
-    }
-
-    if (message.contains("what can you do")) {
-      return "I can answer questions, write content, help with Flutter, Python, DevOps, Rasa chatbot, and app development.";
-    }
-
-    return "Thanks for your message. I am ready to help you with that.";
+    _scrollToBottom();
   }
 
   void _scrollToBottom() {
@@ -192,6 +220,77 @@ class _chatState extends State<chat> {
     );
   }
 
+  Widget _buildTypingIndicator() {
+    if (!_isBotTyping) {
+      return const SizedBox.shrink();
+    }
+
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.only(
+          left: 0,
+          right: 55,
+          bottom: 14,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Container(
+              height: 34,
+              width: 34,
+              margin: const EdgeInsets.only(right: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xffdcfce7),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.smart_toy_rounded,
+                color: Color(0xff16a34a),
+                size: 20,
+              ),
+            ),
+
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 13,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                  bottomLeft: Radius.circular(4),
+                  bottomRight: Radius.circular(20),
+                ),
+                border: Border.all(
+                  color: const Color(0xffe2e8f0),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 16,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: const Text(
+                "Typing...",
+                style: TextStyle(
+                  color: Color(0xff0f172a),
+                  fontSize: 14,
+                  height: 1.45,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildQuickQuestions() {
     return SizedBox(
       height: 42,
@@ -282,7 +381,7 @@ class _chatState extends State<chat> {
             const SizedBox(width: 10),
 
             GestureDetector(
-              onTap: _sendMessage,
+              onTap: () => _sendMessage(),
               child: Container(
                 height: 52,
                 width: 52,
@@ -388,13 +487,11 @@ class _chatState extends State<chat> {
               onPressed: () {
                 setState(() {
                   _messages.clear();
-                  _messages.add({
-                    "message":
-                        "Hello 👋 I am your AI assistant. How can I help you today?",
-                    "isUser": false,
-                    "time": "Now",
-                  });
+                  _isBotTyping = false;
+                  _defaultMessageLoaded = false;
                 });
+
+                _sendDefaultMessage();
               },
               icon: const Icon(
                 Icons.refresh_rounded,
@@ -409,6 +506,8 @@ class _chatState extends State<chat> {
 
   @override
   Widget build(BuildContext context) {
+    final itemCount = _messages.length + (_isBotTyping ? 1 : 0);
+
     return Scaffold(
       backgroundColor: const Color(0xfff8fafc),
       body: Column(
@@ -425,8 +524,12 @@ class _chatState extends State<chat> {
             child: ListView.builder(
               controller: _scrollController,
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-              itemCount: _messages.length,
+              itemCount: itemCount,
               itemBuilder: (context, index) {
+                if (_isBotTyping && index == _messages.length) {
+                  return _buildTypingIndicator();
+                }
+
                 return _buildMessageBubble(_messages[index]);
               },
             ),
