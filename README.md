@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img src="image.png" alt="Chatbot Mobile App Preview" width="700">
+  <img src="image.gif" alt="Chatbot Mobile App Preview" width="700">
 </p>
 
 ## Overview
