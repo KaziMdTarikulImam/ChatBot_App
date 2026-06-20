@@ -1,4 +1,4 @@
-<h1 align="center">Chatbot Mobile App</h1>
+<h1 align="center">NextAssist Chatbot Mobile App</h1>
 
 <p align="center">
   AI-powered chatbot mobile app that can assist customers, take orders, follow instructions, and provide fast conversational support.
@@ -33,3 +33,5 @@ Chatbot Mobile App is a modern Flutter-based mobile application designed to prov
 * GetX ready
 * Android
 * iOS
+
+## NextAssist - Smart Flutter AI Chatbot for Customer Support
