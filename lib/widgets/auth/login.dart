@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:my_app/widgets/auth/registration.dart';
+import 'package:my_app/widgets/home/chat.dart';
 import 'package:my_app/widgets/home/home.dart';
 
 class login extends StatefulWidget {
@@ -270,7 +271,12 @@ class _loginState extends State<login> {
             width: double.infinity,
             height: 56,
             child: ElevatedButton(
-              onPressed: _loginUser,
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => chat()),
+                );
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xff16a34a),
                 foregroundColor: Colors.white,
