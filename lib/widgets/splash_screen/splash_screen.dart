@@ -1,6 +1,5 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:my_app/widgets/auth/registration.dart';
+import 'package:my_app/widgets/home/home.dart';
 
 class splash_screen extends StatefulWidget {
   const splash_screen({Key? key}) : super(key: key);
@@ -15,12 +14,6 @@ class _splash_screenState extends State<splash_screen>
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
   late Animation<Offset> _slideAnimation;
-
-  Timer? _typingTimer;
-  String _fullText = "Smart AI Chat Assistant";
-  String _typingText = "";
-  int _typingIndex = 0;
-  bool _showCursor = true;
 
   @override
   void initState() {
@@ -42,38 +35,22 @@ class _splash_screenState extends State<splash_screen>
     ).animate(
       CurvedAnimation(
         parent: _animationController,
-        curve: Curves.elasticOut,
-      ),
-    );
-
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.35),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _animationController,
         curve: Curves.easeOutBack,
       ),
     );
 
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.25),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOut,
+      ),
+    );
+
     _animationController.forward();
-    _startTypingEffect();
     _navigatetoscreen();
-  }
-
-  void _startTypingEffect() {
-    _typingTimer = Timer.periodic(const Duration(milliseconds: 70), (timer) {
-      if (!mounted) return;
-
-      setState(() {
-        if (_typingIndex < _fullText.length) {
-          _typingText += _fullText[_typingIndex];
-          _typingIndex++;
-        } else {
-          _showCursor = !_showCursor;
-        }
-      });
-    });
   }
 
   _navigatetoscreen() async {
@@ -83,127 +60,54 @@ class _splash_screenState extends State<splash_screen>
 
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => registration()),
+      MaterialPageRoute(builder: (context) => const home()),
     );
   }
 
   @override
   void dispose() {
-    _typingTimer?.cancel();
     _animationController.dispose();
     super.dispose();
   }
 
-  Widget _chatBubble({
-    required IconData icon,
-    required Color color,
+  Widget _buildAnimatedDot({
     required double size,
+    required Color color,
   }) {
-    return Container(
-      height: size,
-      width: size,
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.18),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.35),
+    return ScaleTransition(
+      scale: _scaleAnimation,
+      child: Container(
+        height: size,
+        width: size,
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.18),
+          shape: BoxShape.circle,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.18),
-            blurRadius: 22,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
-      child: Icon(
-        icon,
-        color: Colors.white,
-        size: size * 0.45,
       ),
     );
   }
 
-  Widget _smallDot({
-    required Color color,
-    required double size,
-  }) {
-    return Container(
-      height: size,
-      width: size,
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.45),
-        shape: BoxShape.circle,
-      ),
-    );
-  }
-
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xff0f172a),
       body: Stack(
         children: [
           Positioned(
-            top: -85,
-            right: -75,
-            child: Container(
-              height: 230,
-              width: 230,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.green.withOpacity(0.25),
-              ),
-            ),
-          ),
-
-          Positioned(
-            bottom: -95,
-            left: -85,
-            child: Container(
-              height: 250,
-              width: 250,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.blue.withOpacity(0.18),
-              ),
-            ),
-          ),
-
-          Positioned(
-            top: 115,
-            left: 28,
-            child: _chatBubble(
-              icon: Icons.chat_bubble_outline,
+            top: -80,
+            right: -70,
+            child: _buildAnimatedDot(
+              size: 210,
               color: Colors.green,
-              size: 58,
             ),
           ),
 
           Positioned(
-            top: 185,
-            right: 42,
-            child: _smallDot(
-              color: Colors.green,
-              size: 12,
-            ),
-          ),
-
-          Positioned(
-            bottom: 185,
-            right: 35,
-            child: _chatBubble(
-              icon: Icons.smart_toy_outlined,
+            bottom: -90,
+            left: -80,
+            child: _buildAnimatedDot(
+              size: 230,
               color: Colors.blue,
-              size: 64,
-            ),
-          ),
-
-          Positioned(
-            bottom: 145,
-            left: 52,
-            child: _smallDot(
-              color: Colors.white,
-              size: 9,
             ),
           ),
 
@@ -218,43 +122,23 @@ class _splash_screenState extends State<splash_screen>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Container(
-                        height: 118,
-                        width: 118,
+                        height: 112,
+                        width: 112,
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [
-                              Color(0xff16a34a),
-                              Color(0xff22c55e),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(34),
+                          color: const Color(0xff16a34a),
+                          borderRadius: BorderRadius.circular(32),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.green.withOpacity(0.38),
-                              blurRadius: 40,
-                              offset: const Offset(0, 18),
+                              color: Colors.green.withOpacity(0.35),
+                              blurRadius: 32,
+                              offset: const Offset(0, 14),
                             ),
                           ],
                         ),
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Container(
-                              height: 86,
-                              width: 86,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.14),
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const Icon(
-                              Icons.chat_rounded,
-                              size: 64,
-                              color: Colors.white,
-                            ),
-                          ],
+                        child: const Icon(
+                          Icons.chat_rounded,
+                          color: Colors.white,
+                          size: 62,
                         ),
                       ),
 
@@ -263,70 +147,21 @@ class _splash_screenState extends State<splash_screen>
                       const Text(
                         'ChatBot AI',
                         style: TextStyle(
-                          fontSize: 36,
+                          fontSize: 34,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
-                          letterSpacing: 0.6,
+                          letterSpacing: 0.5,
                         ),
                       ),
 
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 10),
 
-                      SizedBox(
-                        height: 28,
-                        child: Text(
-                          '$_typingText${_showCursor ? "|" : ""}',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white.withOpacity(0.78),
-                            letterSpacing: 0.2,
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 36),
-
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 22,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.08),
-                          borderRadius: BorderRadius.circular(40),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.12),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              height: 9,
-                              width: 9,
-                              decoration: BoxDecoration(
-                                color: Colors.green.shade400,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.green.withOpacity(0.65),
-                                    blurRadius: 12,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Text(
-                              'Preparing your conversation',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white.withOpacity(0.68),
-                              ),
-                            ),
-                          ],
+                      Text(
+                        'Smart AI Chat Assistant',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white.withOpacity(0.72),
                         ),
                       ),
                     ],
@@ -341,7 +176,7 @@ class _splash_screenState extends State<splash_screen>
             left: 0,
             right: 0,
             child: Text(
-              'Powered by AI Conversation',
+              'Powered by NextIndex',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
