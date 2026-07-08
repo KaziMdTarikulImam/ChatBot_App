@@ -13,7 +13,7 @@ class ApiService {
     static const String baseUrl = "http://YOUR_COMPUTER_IP:5050";
   */
 
-  static const String baseUrl = "https://chat.logicmatrix.us";
+  static const String baseUrl = "https://unpleased-conceal-rigging.ngrok-free.dev";
 
   static Future<String> postChatMessage({
     required String endpoint,
