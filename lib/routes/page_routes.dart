@@ -19,4 +19,5 @@ class AppPages {
      GetPage(name: AppRoutes.chat, page: () => chat()), // Replace with actual chat page
     // GetPage(name: AppRoutes.settings, page: () => SettingsPage()),
   ];
+  
 }

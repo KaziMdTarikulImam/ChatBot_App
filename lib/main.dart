@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'ChatBot',
+      title: 'Nexify',
       debugShowCheckedModeBanner: false,
       initialRoute: AppRoutes.splash_screen,
       getPages: AppPages.routes,
