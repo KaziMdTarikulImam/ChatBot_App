@@ -12,13 +12,13 @@ class _chatState extends State<chat> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  final String _sender = "mohsin";
-  final String _defaultMessage = "Hi";
+  static const String _sender = "mohsin";
+  static const String _defaultMessage = "Hi";
 
   bool _isBotTyping = false;
   bool _defaultMessageLoaded = false;
 
-  final List<Map<String, dynamic>> _messages = [];
+  final List<ChatMessage> _messages = [];
 
   @override
   void initState() {
@@ -40,28 +40,25 @@ class _chatState extends State<chat> {
     if (_defaultMessageLoaded) return;
 
     _defaultMessageLoaded = true;
+    _setBotTyping(true);
 
-    setState(() {
-      _isBotTyping = true;
-    });
+    try {
+      final botReply = await ApiService.postChatMessage(
+        endpoint: "chat",
+        sender: _sender,
+        message: _defaultMessage,
+      );
 
-    final botReply = await ApiService.postChatMessage(
-      endpoint: "chat",
-      sender: _sender,
-      message: _defaultMessage,
-    );
-
-    if (!mounted) return;
-
-    setState(() {
-      _isBotTyping = false;
-      _messages.add({
-        "message": botReply,
-        "isUser": false,
-      });
-    });
-
-    _scrollToBottom();
+      _addMessage(botReply, isUser: false);
+    } catch (e) {
+      _addMessage(
+        "Sorry, I could not start the chat. Please try again.",
+        isUser: false,
+      );
+    } finally {
+      _setBotTyping(false);
+      _scrollToBottom();
+    }
   }
 
   Future<void> _sendMessage() async {
@@ -69,35 +66,50 @@ class _chatState extends State<chat> {
 
     if (text.isEmpty || _isBotTyping) return;
 
-    setState(() {
-      _messages.add({
-        "message": text,
-        "isUser": true,
-      });
-
-      _isBotTyping = true;
-    });
-
     _messageController.clear();
+
+    _addMessage(text, isUser: true);
+    _setBotTyping(true);
     _scrollToBottom();
 
-    final botReply = await ApiService.postChatMessage(
-      endpoint: "chat",
-      sender: _sender,
-      message: text,
-    );
+    try {
+      final botReply = await ApiService.postChatMessage(
+        endpoint: "chat",
+        sender: _sender,
+        message: text,
+      );
 
+      _addMessage(botReply, isUser: false);
+    } catch (e) {
+      _addMessage(
+        "Sorry, something went wrong. Please try again.",
+        isUser: false,
+      );
+    } finally {
+      _setBotTyping(false);
+      _scrollToBottom();
+    }
+  }
+
+  void _addMessage(String message, {required bool isUser}) {
     if (!mounted) return;
 
     setState(() {
-      _isBotTyping = false;
-      _messages.add({
-        "message": botReply,
-        "isUser": false,
-      });
+      _messages.add(
+        ChatMessage(
+          message: message,
+          isUser: isUser,
+        ),
+      );
     });
+  }
 
-    _scrollToBottom();
+  void _setBotTyping(bool value) {
+    if (!mounted) return;
+
+    setState(() {
+      _isBotTyping = value;
+    });
   }
 
   void _resetChat() {
@@ -111,19 +123,19 @@ class _chatState extends State<chat> {
   }
 
   void _scrollToBottom() {
-    Future.delayed(const Duration(milliseconds: 150), () {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scrollController.hasClients) return;
+
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
     });
   }
 
-  Widget _buildMessageBubble(Map<String, dynamic> item) {
-    final bool isUser = item["isUser"] ?? false;
+  Widget _buildMessageBubble(ChatMessage item) {
+    final bool isUser = item.isUser;
 
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
@@ -138,7 +150,7 @@ class _chatState extends State<chat> {
           vertical: 12,
         ),
         decoration: BoxDecoration(
-          color: isUser ? const Color(0xff16a34a) : Colors.white,
+          color: isUser ? AppColors.primaryGreen : Colors.white,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(18),
             topRight: const Radius.circular(18),
@@ -146,7 +158,7 @@ class _chatState extends State<chat> {
             bottomRight: Radius.circular(isUser ? 4 : 18),
           ),
           border: Border.all(
-            color: isUser ? const Color(0xff16a34a) : const Color(0xffe2e8f0),
+            color: isUser ? AppColors.primaryGreen : AppColors.borderColor,
           ),
           boxShadow: [
             BoxShadow(
@@ -157,9 +169,9 @@ class _chatState extends State<chat> {
           ],
         ),
         child: Text(
-          item["message"].toString(),
+          item.message,
           style: TextStyle(
-            color: isUser ? Colors.white : const Color(0xff0f172a),
+            color: isUser ? Colors.white : AppColors.darkText,
             fontSize: 14,
             height: 1.45,
             fontWeight: FontWeight.w500,
@@ -193,13 +205,13 @@ class _chatState extends State<chat> {
             bottomRight: Radius.circular(18),
           ),
           border: Border.all(
-            color: const Color(0xffe2e8f0),
+            color: AppColors.borderColor,
           ),
         ),
         child: const Text(
           "Typing...",
           style: TextStyle(
-            color: Color(0xff64748b),
+            color: AppColors.lightText,
             fontSize: 14,
             fontWeight: FontWeight.w500,
           ),
@@ -228,46 +240,40 @@ class _chatState extends State<chat> {
                 minLines: 1,
                 maxLines: 4,
                 textInputAction: TextInputAction.send,
+                textCapitalization: TextCapitalization.sentences,
                 onSubmitted: (_) => _sendMessage(),
                 decoration: InputDecoration(
                   hintText: "Type your message...",
                   filled: true,
-                  fillColor: const Color(0xfff8fafc),
+                  fillColor: AppColors.backgroundColor,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 14,
                   ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(18),
-                    borderSide: BorderSide.none,
+                  border: _inputBorder(BorderSide.none),
+                  enabledBorder: _inputBorder(
+                    const BorderSide(color: AppColors.borderColor),
                   ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(18),
-                    borderSide: const BorderSide(
-                      color: Color(0xffe2e8f0),
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(18),
-                    borderSide: const BorderSide(
-                      color: Color(0xff16a34a),
+                  focusedBorder: _inputBorder(
+                    const BorderSide(
+                      color: AppColors.primaryGreen,
                       width: 1.4,
                     ),
                   ),
                 ),
               ),
             ),
-
             const SizedBox(width: 10),
-
             InkWell(
-              onTap: _sendMessage,
+              onTap: _isBotTyping ? null : _sendMessage,
               borderRadius: BorderRadius.circular(18),
               child: Container(
                 height: 52,
                 width: 52,
                 decoration: BoxDecoration(
-                  color: const Color(0xff16a34a),
+                  color: _isBotTyping
+                      ? AppColors.primaryGreen.withOpacity(0.5)
+                      : AppColors.primaryGreen,
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: const Icon(
@@ -282,6 +288,13 @@ class _chatState extends State<chat> {
     );
   }
 
+  OutlineInputBorder _inputBorder(BorderSide borderSide) {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(18),
+      borderSide: borderSide,
+    );
+  }
+
   Widget _buildEmptyMessage() {
     if (_messages.isNotEmpty || _isBotTyping) {
       return const SizedBox.shrink();
@@ -291,7 +304,7 @@ class _chatState extends State<chat> {
       child: Text(
         "Starting chat...",
         style: TextStyle(
-          color: Color(0xff64748b),
+          color: AppColors.lightText,
           fontSize: 15,
           fontWeight: FontWeight.w500,
         ),
@@ -304,11 +317,10 @@ class _chatState extends State<chat> {
     final itemCount = _messages.length + (_isBotTyping ? 1 : 0);
 
     return Scaffold(
-      backgroundColor: const Color(0xfff8fafc),
-
+      backgroundColor: AppColors.backgroundColor,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: const Color(0xff0f172a),
+        backgroundColor: AppColors.appBarColor,
         foregroundColor: Colors.white,
         titleSpacing: 0,
         title: const Row(
@@ -318,7 +330,7 @@ class _chatState extends State<chat> {
               backgroundColor: Colors.white,
               child: Icon(
                 Icons.smart_toy_rounded,
-                color: Color(0xff16a34a),
+                color: AppColors.primaryGreen,
                 size: 22,
               ),
             ),
@@ -327,7 +339,7 @@ class _chatState extends State<chat> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "ChatBot AI",
+                  "Nexify",
                   style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
@@ -351,7 +363,6 @@ class _chatState extends State<chat> {
           ),
         ],
       ),
-
       body: Column(
         children: [
           Expanded(
@@ -370,10 +381,28 @@ class _chatState extends State<chat> {
                     },
                   ),
           ),
-
           _buildInputBox(),
         ],
       ),
     );
   }
+}
+
+class ChatMessage {
+  final String message;
+  final bool isUser;
+
+  const ChatMessage({
+    required this.message,
+    required this.isUser,
+  });
+}
+
+class AppColors {
+  static const Color primaryGreen = Color(0xff16a34a);
+  static const Color appBarColor = Color(0xff0f172a);
+  static const Color backgroundColor = Color(0xfff8fafc);
+  static const Color borderColor = Color(0xffe2e8f0);
+  static const Color darkText = Color(0xff0f172a);
+  static const Color lightText = Color(0xff64748b);
 }
